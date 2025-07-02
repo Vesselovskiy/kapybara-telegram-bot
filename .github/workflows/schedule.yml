@@ -3,7 +3,7 @@ name: Run Telegram Bot Every 5 Minutes
 on:
   schedule:
     - cron: "*/5 * * * *"  # каждые 5 минут по UTC
-  workflow_dispatch:      # позволяет запускать вручную из интерфейса GitHub
+  workflow_dispatch:       # позволяет запускать вручную из интерфейса GitHub
 
 jobs:
   run-bot:
