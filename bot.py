@@ -10,7 +10,6 @@ CHAT_IDS = os.getenv("TELEGRAM_CHAT_IDS", "").split(",")
 URLS = [
     'https://prs-cdp-prod-webapiproxy.azurewebsites.net/api/v2/kdp/webshop/product/10583/menu/timeslots?date=2025-07-08',
     'https://prs-cdp-prod-webapiproxy.azurewebsites.net/api/v2/kdp/webshop/product/10583/menu/timeslots?date=2025-07-09',
-    'https://prs-cdp-prod-webapiproxy.azurewebsites.net/api/v2/kdp/webshop/product/10583/menu/timeslots?date=2025-07-31',
 ]
 
 def extract_date_from_url(url: str) -> str:
