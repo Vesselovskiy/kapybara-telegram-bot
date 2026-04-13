@@ -40,9 +40,9 @@
 #
 #if __name__ == "__main__":
 #        asyncio.run(check_slots())
+
 import os
 import requests
-from telegram import Bot
 from urllib.parse import urlparse
 
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
@@ -64,16 +64,36 @@ def extract_place_from_url(url: str) -> str:
     try:
         idx = parts.index("koslapp")
         return parts[idx + 1]
-    except:
+    except (ValueError, IndexError):
         return "unknown"
 
 
-def check_slots():
-    bot = Bot(token=TELEGRAM_BOT_TOKEN)
+def send_telegram_message(text: str) -> None:
+    telegram_url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
 
+    for chat_id in CHAT_IDS:
+        try:
+            response = requests.post(
+                telegram_url,
+                json={
+                    "chat_id": chat_id,
+                    "text": text,
+                },
+                timeout=15,
+            )
+            response.raise_for_status()
+            print(f"Сообщение отправлено в chat_id={chat_id}")
+        except Exception as e:
+            print(f"Ошибка отправки в chat_id={chat_id}: {e}")
+
+
+def check_slots() -> None:
     headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
-                      "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        "User-Agent": (
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+            "AppleWebKit/537.36 (KHTML, like Gecko) "
+            "Chrome/124.0.0.0 Safari/537.36"
+        )
     }
 
     for url in URLS:
@@ -90,9 +110,7 @@ def check_slots():
                 place = extract_place_from_url(url)
                 message = f"Есть слоты: {place}\n{url}"
                 print(message)
-
-                for chat_id in CHAT_IDS:
-                    bot.send_message(chat_id=chat_id, text=message)
+                send_telegram_message(message)
             else:
                 print(f"Все занято: {url}")
 
@@ -101,4 +119,9 @@ def check_slots():
 
 
 if __name__ == "__main__":
+    if not TELEGRAM_BOT_TOKEN:
+        raise ValueError("Не задан TELEGRAM_BOT_TOKEN")
+    if not CHAT_IDS:
+        raise ValueError("Не задан TELEGRAM_CHAT_IDS")
+
     check_slots()
