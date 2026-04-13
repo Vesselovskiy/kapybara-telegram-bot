@@ -40,10 +40,8 @@
 #
 #if __name__ == "__main__":
 #        asyncio.run(check_slots())
-
 import os
-import asyncio
-import aiohttp
+import requests
 from telegram import Bot
 from urllib.parse import urlparse
 
@@ -62,71 +60,45 @@ FULLY_BOOKED_TEXT = "Fullbokat!"
 
 
 def extract_place_from_url(url: str) -> str:
-    """
-    Берет часть URL после /koslapp/ и до следующего /.
-    Пример:
-    https://www.arla.se/event-sponsring/koslapp/stockholm/backa-karsta-vallentuna/
-    -> stockholm
-    """
-    path_parts = [part for part in urlparse(url).path.split("/") if part]
-
-    # Ожидается примерно:
-    # ["event-sponsring", "koslapp", "stockholm", "backa-karsta-vallentuna"]
+    parts = [p for p in urlparse(url).path.split("/") if p]
     try:
-        koslapp_index = path_parts.index("koslapp")
-        return path_parts[koslapp_index + 1]
-    except (ValueError, IndexError):
+        idx = parts.index("koslapp")
+        return parts[idx + 1]
+    except:
         return "unknown"
 
 
-async def send_message_to_all(bot: Bot, text: str) -> None:
-    for chat_id in CHAT_IDS:
+def check_slots():
+    bot = Bot(token=TELEGRAM_BOT_TOKEN)
+
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+                      "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+    }
+
+    for url in URLS:
         try:
-            await bot.send_message(chat_id=chat_id, text=text)
-        except Exception as e:
-            print(f"Ошибка отправки в chat_id={chat_id}: {e}")
+            response = requests.get(url, headers=headers, timeout=15)
 
+            if response.status_code != 200:
+                print(f"Ошибка {response.status_code}: {url}")
+                continue
 
-async def check_page(session: aiohttp.ClientSession, bot: Bot, url: str) -> None:
-    try:
-        async with session.get(
-            url,
-            timeout=aiohttp.ClientTimeout(total=20),
-            headers={
-                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
-                              "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
-            },
-        ) as response:
-            if response.status != 200:
-                print(f"Ошибка: статус {response.status} для URL {url}")
-                return
-
-            html = await response.text()
+            html = response.text
 
             if FULLY_BOOKED_TEXT not in html:
                 place = extract_place_from_url(url)
                 message = f"Есть слоты: {place}\n{url}"
                 print(message)
-                await send_message_to_all(bot, message)
+
+                for chat_id in CHAT_IDS:
+                    bot.send_message(chat_id=chat_id, text=message)
             else:
                 print(f"Все занято: {url}")
 
-    except Exception as e:
-        print(f"Ошибка при проверке {url}: {e}")
-
-
-async def main() -> None:
-    if not TELEGRAM_BOT_TOKEN:
-        raise ValueError("Не задан TELEGRAM_BOT_TOKEN")
-    if not CHAT_IDS:
-        raise ValueError("Не задан TELEGRAM_CHAT_IDS")
-
-    bot = Bot(token=TELEGRAM_BOT_TOKEN)
-
-    async with aiohttp.ClientSession() as session:
-        tasks = [check_page(session, bot, url) for url in URLS]
-        await asyncio.gather(*tasks)
+        except Exception as e:
+            print(f"Ошибка при запросе {url}: {e}")
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    check_slots()
