@@ -51,7 +51,6 @@ CHAT_IDS = [chat_id.strip() for chat_id in os.getenv("TELEGRAM_CHAT_IDS", "").sp
 URLS = [
     "https://www.arla.se/event-sponsring/koslapp/stockholm/backa-karsta-vallentuna/",
     "https://www.arla.se/event-sponsring/koslapp/stockholm/finngarne-gard-norrtalje/",
-    "https://www.arla.se/event-sponsring/koslapp/gotland/gotland-gront-centrum-roma/",
     "https://www.arla.se/event-sponsring/koslapp/uppsala/lovsta-lantbruksforskning/",
     "https://www.arla.se/event-sponsring/koslapp/uppsala/yrkesgymnasium-jalla/",
 ]
