@@ -2,8 +2,8 @@ name: Run Telegram Bot Every 5 Minutes
 
 on:
   schedule:
-    - cron: "*/5 * * * *"  # каждые 5 минут по UTC
-  workflow_dispatch:       # позволяет запускать вручную из интерфейса GitHub
+    - cron: "2,7,12,17,22,27,32,37,42,47,52,57 * * * *"
+  workflow_dispatch:
 
 jobs:
   run-bot:
@@ -11,10 +11,10 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: "3.11"
 
@@ -27,5 +27,4 @@ jobs:
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_IDS: ${{ secrets.TELEGRAM_CHAT_IDS }}
-        run: |
-          python bot.py
+        run: python bot.py
